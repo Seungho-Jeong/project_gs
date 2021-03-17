@@ -27,7 +27,7 @@ class ModelCategory(models.Model):
 
 
 class ModelInformation(models.Model):
-    model_categoty    = models.ForeignKey(ModelCategory, on_delete=models.CASCADE)
+    model_category    = models.ForeignKey(ModelCategory, on_delete=models.CASCADE)
     account           = models.ForeignKey(Account, on_delete=models.CASCADE)
     model_name_ko     = models.CharField(max_length=30, null=True)
     model_name_en     = models.CharField(max_length=30)
@@ -37,7 +37,7 @@ class ModelInformation(models.Model):
     grnt_period       = models.DateField(null=True)
     serial_number     = models.CharField(max_length=30)
     created_at        = models.DateTimeField(auto_now_add=True)
-    updated_ad        = models.DateTimeField(auto_now=True)
+    updated_at        = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'model_information'
