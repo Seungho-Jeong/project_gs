@@ -28,7 +28,7 @@ class ModelCategory(models.Model):
 
 class ModelInformation(models.Model):
     model_categoty    = models.ForeignKey(ModelCategory, on_delete=models.CASCADE)
-    account_id        = models.ForeignKey(Account, on_delete=models.CASCADE)
+    account           = models.ForeignKey(Account, on_delete=models.CASCADE)
     model_name_ko     = models.CharField(max_length=30, null=True)
     model_name_en     = models.CharField(max_length=30)
     purchase_paid     = models.IntegerField(default=0, null=True)
