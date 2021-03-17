@@ -17,7 +17,7 @@ class Account(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_master = models.BooleanField(default=False)
-    account_status = models.ForeignKey(AccountStatus, default=1)
+    account_status = models.ForeignKey(AccountStatus, on_delete=models.CASCADE, default=1)
 
     class Meta:
         db_table = 'account'
