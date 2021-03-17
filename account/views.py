@@ -7,6 +7,7 @@ import my_settings
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views import View
+from django.shortcuts import redirect
 
 from .models import AccountStatus, Account
 
@@ -70,3 +71,16 @@ class SignInView(View):
             return JsonResponse({"message": "key_error: {}".format(e)}, status=400)
         except Exception as e:
             return JsonResponse({"message": "error: {}".format(e)}, status=400)
+
+
+class SignInKakaoView(View):
+    def get(self, request):
+        try:
+            client_id = "4cc1c7008ca15f7ac7853890d4c77667"
+            redirect_uri = "http://localhost:8000/account/signin/kakao"
+
+            api_host = f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+
+            return redirect(api_host)
+        except Exception as e:
+            return JsonResponse({"message": "error {}".format(e)}, status=400)
