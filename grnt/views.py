@@ -159,5 +159,7 @@ class GRNTInformation(View):
                 this_model.save()
                 return JsonResponse({"message": "success"}, status=200)
 
+        except ModelInformation.DoesNotExist:
+            return JsonResponse({"message": "no_exist_information"}, status=400)
         except Exception as e:
             return JsonResponse({"message": "error: {}".format(e)}, status=400)
