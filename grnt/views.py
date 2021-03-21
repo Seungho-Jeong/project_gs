@@ -1,16 +1,22 @@
 import json
+import re
 
-from django.shortcuts   import render
-from django.views       import View
-from django.http        import JsonResponse
-from django.db          import transaction
+from django.shortcuts       import render
+from django.views           import View
+from django.http            import JsonResponse
+from django.db              import transaction
 
-from datetime           import datetime, timedelta
+from datetime               import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from account.decorator  import login_decorator
-from account.models     import Account
-from .models            import (
+from gs.util                import (
+    PermissionException,
+    NoSignUpException,
+    InfoDeletedException
+)
+from account.decorator      import login_decorator
+from account.models         import Account
+from .models                import (
     MNFCTCompany,
     ModelGroup,
     ModelCategory,
@@ -29,8 +35,11 @@ class GRNTInformation(View):
         try:
             data = json.loads(request.body)
 
+            if request.account is False:
+                raise NoSignUpException
+
             if not Account.objects.filter(id=request.account.id):
-                return JsonResponse({"message": "no_information_account"}, stauts=401)
+                raise PermissionException
 
             guarantee_start_date = datetime.strptime(data['purchase_date'], '%Y-%m-%d')
             guarantee_end_date   = guarantee_start_date + relativedelta(years=2) + timedelta(days=-1)
@@ -49,7 +58,10 @@ class GRNTInformation(View):
                     serial_number     = data['serial_number']
                 )
                 return JsonResponse({"message": "success"}, status=201)
-
+        except NoSignUpException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except PermissionException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
         except KeyError as e:
             return JsonResponse({"message": "key_error: {}".format(e)}, status=400)
         except Exception as e:
@@ -62,16 +74,16 @@ class GRNTInformation(View):
             this_model = ModelInformation.objects.get(id=model_information_id)
 
             if request.account is False:
-                return JsonResponse({"message": "unauthorization"}, status=401)
+                raise NoSignUpException
 
             if request.account.is_master is True:
                 request.account.id = this_model.account_id
 
             if request.account.id is not this_model.account_id:
-                return JsonResponse({"message": "unauthorization"}, status=401)
+                raise PermissionException
 
             if this_model.is_delete is True:
-                return JsonResponse({"message": "not_exists_information"}, status=400)
+                raise InfoDeletedException
 
             information_detail = {
                 "model_category_id": this_model.model_category_id,
@@ -87,8 +99,14 @@ class GRNTInformation(View):
             }
             return JsonResponse({"message": "success", "detail": information_detail}, status=200)
 
+        except NoSignUpException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except PermissionException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except InfoDeletedException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
         except ModelInformation.DoesNotExist:
-            return JsonResponse({"message": "no_exist_information"}, status=400)
+            return JsonResponse({"message": "not_exist_information"}, status=400)
         except KeyError as e:
             return JsonResponse({"message": "keyerror: {}".format(e)}, status=400)
         except Exception as e:
@@ -102,16 +120,16 @@ class GRNTInformation(View):
             this_model = ModelInformation.objects.get(id=model_information_id)
 
             if request.account is False:
-                return JsonResponse({"message": "unauthorization"}, status=401)
+                raise NoSignUpException
 
             if request.account.is_master is True:
                 request.account.id = this_model.account_id
 
             if request.account.id is not this_model.account_id:
-                return JsonResponse({"message": "unauthorization"}, status=401)
+                raise PermissionException
 
             if this_model.is_delete is True:
-                return JsonResponse({"message": "not_exists_information"}, status=400)
+                raise InfoDeletedException
 
             guarantee_start_date = datetime.strptime(data['purchase_date'], '%Y-%m-%d')
             guarantee_end_date   = guarantee_start_date + relativedelta(years=2) + timedelta(days=-1)
@@ -130,6 +148,14 @@ class GRNTInformation(View):
                 )
                 return JsonResponse({"message": "success"}, status=200)
 
+        except NoSignUpException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except PermissionException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except InfoDeletedException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except ModelInformation.DoesNotExist:
+            return JsonResponse({"message": "not_exist_information"}, status=400)
         except KeyError as e:
             return JsonResponse({"message": "key_error: {}".format(e)}, status=400)
         except Exception as e:
@@ -143,21 +169,29 @@ class GRNTInformation(View):
             this_model = ModelInformation.objects.get(id=model_information_id)
 
             if request.account is False:
-                return JsonResponse({"message": "unauthorization"}, status=401)
+                raise NoSignUpException
 
             if request.account.is_master is True:
                 request.account.id = this_model.account_id
 
             if request.account.id is not this_model.account_id:
-                return JsonResponse({"message": "unauthorization"}, status=401)
+                raise PermissionException
 
             if this_model.is_delete is True:
-                return JsonResponse({"message": "not_exists_information"}, status=400)
+                raise InfoDeletedException
 
             with transaction.atomic():
                 this_model.is_delete = data['is_delete']
                 this_model.save()
                 return JsonResponse({"message": "success"}, status=200)
 
+        except NoSignUpException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except PermissionException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except InfoDeletedException as e:
+            return JsonResponse({"message": e.msg}, status=e.status)
+        except ModelInformation.DoesNotExist:
+            return JsonResponse({"message": "not_exist_information"}, status=400)
         except Exception as e:
             return JsonResponse({"message": "error: {}".format(e)}, status=400)
