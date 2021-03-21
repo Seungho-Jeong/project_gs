@@ -36,6 +36,7 @@ class ModelInformation(models.Model):
     purchase_location = models.CharField(max_length=30, null=True)
     grnt_period       = models.DateField(null=True)
     serial_number     = models.CharField(max_length=30)
+    is_delete         = models.BooleanField(default=False)
     created_at        = models.DateTimeField(auto_now_add=True)
     updated_at        = models.DateTimeField(auto_now=True)
 

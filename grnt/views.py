@@ -70,6 +70,9 @@ class GRNTInformation(View):
             if request.account.id is not this_model.account_id:
                 return JsonResponse({"message": "unauthorization"}, status=401)
 
+            if this_model.is_delete is True:
+                return JsonResponse({"message": "not_exists_information"}, status=400)
+
             information_detail = {
                 "model_category_id": this_model.model_category_id,
                 "model_name_ko"    : this_model.model_name_ko,
@@ -107,6 +110,9 @@ class GRNTInformation(View):
             if request.account.id is not this_model.account_id:
                 return JsonResponse({"message": "unauthorization"}, status=401)
 
+            if this_model.is_delete is True:
+                return JsonResponse({"message": "not_exists_information"}, status=400)
+
             guarantee_start_date = datetime.strptime(data['purchase_date'], '%Y-%m-%d')
             guarantee_end_date   = guarantee_start_date + relativedelta(years=2) + timedelta(days=-1)
             data['grnt_period']  = guarantee_end_date
@@ -126,5 +132,32 @@ class GRNTInformation(View):
 
         except KeyError as e:
             return JsonResponse({"message": "key_error: {}".format(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({"message": "error: {}".format(e)}, status=400)
+
+    @login_decorator
+    def patch(self, request, model_information_id):
+
+        try:
+            data = json.loads(request.body)
+            this_model = ModelInformation.objects.get(id=model_information_id)
+
+            if request.account is False:
+                return JsonResponse({"message": "unauthorization"}, status=401)
+
+            if request.account.is_master is True:
+                request.account.id = this_model.account_id
+
+            if request.account.id is not this_model.account_id:
+                return JsonResponse({"message": "unauthorization"}, status=401)
+
+            if this_model.is_delete is True:
+                return JsonResponse({"message": "not_exists_information"}, status=400)
+
+            with transaction.atomic():
+                this_model.is_delete = data['is_delete']
+                this_model.save()
+                return JsonResponse({"message": "success"}, status=200)
+
         except Exception as e:
             return JsonResponse({"message": "error: {}".format(e)}, status=400)
